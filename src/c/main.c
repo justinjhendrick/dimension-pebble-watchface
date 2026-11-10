@@ -1,9 +1,8 @@
 #include <pebble.h>
 
 #define DEBUG_BBOX (false)
-#define DEBUG_TIME (false)
+#define DEBUG_TIME (true)
 #define BUFFER_LEN (40)
-#define ROUND (PBL_IF_ROUND_ELSE(true, false))
 
 static Window* s_window;
 static Layer* s_layer;
@@ -25,6 +24,13 @@ static GRect rect_from_midpoint(GPoint midpoint, GSize size) {
   return ret;
 }
 
+static int min(int a, int b) {
+  if (a < b) {
+    return a;
+  }
+  return b;
+}
+
 static void draw_text(
     GContext* ctx,
     const char* buffer,
@@ -38,50 +44,104 @@ static void draw_text(
 }
 
 static void draw_digit(GContext* ctx, GRect bbox, int digit) {
+  graphics_context_set_fill_color(ctx, GColorWhite);
+  graphics_fill_rect(ctx, bbox, 0, GCornerNone);
+  graphics_context_set_fill_color(ctx, GColorBlack);
+  graphics_context_set_stroke_color(ctx, GColorBlack);
+  graphics_context_set_stroke_width(ctx, 7);
+
+  GPoint center = grect_center_point(&bbox);
+  int R = min(bbox.size.h, bbox.size.w) / 4;
+  int D = 2 * R;
+  switch (digit) {
+    case 0: {
+      graphics_draw_circle(ctx, center, R);
+      break;
+    } case 1: {
+      graphics_fill_circle(ctx, center, 7);
+      break;
+    } case 2: {
+      GPoint left = GPoint(center.x - R, center.y);
+      GPoint right = GPoint(center.x + R, center.y);
+      graphics_draw_line(ctx, left, right);
+      break;
+    } case 3: {
+      GPoint u = GPoint(center.x, center.y - 15);
+      GPoint l = GPoint(center.x - R, center.y + 15);
+      GPoint r = GPoint(center.x + R, center.y + 15);
+      graphics_fill_circle(ctx, u, 7);
+      graphics_draw_line(ctx, l, r);
+      break;
+    } case 4: {
+      GRect four = rect_from_midpoint(center, GSize(D, D));
+      graphics_draw_rect(ctx, four);
+      break;
+    } case 5: {
+      GRect four = rect_from_midpoint(center, GSize(D, D));
+      graphics_draw_rect(ctx, four);
+      graphics_fill_circle(ctx, center, 7);
+      break;
+    } case 6: {
+      GRect four = rect_from_midpoint(center, GSize(D, D));
+      graphics_draw_rect(ctx, four);
+      graphics_draw_line(ctx, four.origin, GPoint(four.origin.x + four.size.w, four.origin.y + four.size.h));
+      break;
+    } case 7: {
+      GRect four = rect_from_midpoint(center, GSize(D, D));
+      graphics_draw_rect(ctx, four);
+      graphics_draw_line(ctx, four.origin, GPoint(four.origin.x + four.size.w, four.origin.y + four.size.h));
+      GPoint dot = GPoint(four.origin.x + four.size.w * 5 / 16, four.origin.y + four.size.h * 11 / 16);
+      graphics_fill_circle(ctx, dot, 7);
+      break;
+    } case 8: {
+      GRect four = rect_from_midpoint(center, GSize(D, D));
+      graphics_draw_rect(ctx, four);
+      graphics_draw_line(
+        ctx,
+        GPoint(four.origin.x              , four.origin.y + four.size.h / 2),
+        GPoint(four.origin.x + four.size.w, four.origin.y + four.size.h / 2)
+      );
+      break;
+    } case 9: {
+      int half_w = R;
+      int half_h = half_w * 173 / 200;  // approx sqrt(3) / 2
+      GPoint u = GPoint(center.x, center.y - half_h);
+      GPoint l = GPoint(center.x - half_w, center.y + half_h);
+      GPoint r = GPoint(center.x + half_w, center.y + half_h);
+      graphics_draw_line(ctx, u, l);
+      graphics_draw_line(ctx, l, r);
+      graphics_draw_line(ctx, r, u);
+      break;
+    }
+  }
 }
 
-static void draw_time(GContext* ctx, struct tm* now, GPoint center, int radius) {
-  GRect full = rect_from_midpoint(center, GSize(radius * 2, radius * 2));
-  int x = full.origin.x;
-  int y = full.origin.y;
-  int w = full.size.w / 2;
-  int h = full.size.h / 2;
-  int g = 1;
-  GRect tl = GRect(x - g    , y,     w, h);
-  GRect tr = GRect(x + g + w, y,     w, h);
-  GRect bl = GRect(x - g    , y + h, w, h);
-  GRect br = GRect(x + g + w, y + h, w, h);
+static void draw_time(GContext* ctx, GRect bbox, struct tm* now) {
+  int x = bbox.origin.x;
+  int y = bbox.origin.y;
+  int w = bbox.size.w / 2;
+  int h = bbox.size.h / 2;
+  GRect tl = GRect(x    , y,     w, h);
+  GRect tr = GRect(x + w, y,     w, h);
+  GRect bl = GRect(x    , y + h, w, h);
+  GRect br = GRect(x + w, y + h, w, h);
   debug_bbox(ctx, tl);
   debug_bbox(ctx, tr);
   debug_bbox(ctx, bl);
   debug_bbox(ctx, br);
 
-  char t[BUFFER_LEN];
-
-  // hours on top
-  int hours_shift_up = 10;
   int hour = now->tm_hour;
-  if (clock_is_24h_style()) {
-    draw_digit(ctx, tl, hour / 10);
-    draw_digit(ctx, tr, hour % 10);
-  } else {
-    hour = hour % 12;
-    if (hour == 0) {
-      hour = 12;
-    }
-    if (hour / 10 != 0) {
-      draw_digit(ctx, tl, hour / 10);
-    }
-    draw_digit(ctx, tr, hour % 10);
-  }
-
-  // minutes on bottom
+  draw_digit(ctx, tl, hour / 10);
+  draw_digit(ctx, tr, hour % 10);
   int minute = now->tm_min;
   draw_digit(ctx, bl, minute / 10);
   draw_digit(ctx, br, minute % 10);
 }
 
 static void draw_date(GContext* ctx, GRect bounds, int date_height, struct tm* now) {
+  if (date_height < 10) {
+    return;
+  }
   GRect date_bbox = GRect(
     bounds.origin.x,
     bounds.origin.y + bounds.size.h - date_height,
@@ -91,28 +151,30 @@ static void draw_date(GContext* ctx, GRect bounds, int date_height, struct tm* n
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_fill_rect(ctx, date_bbox, 0, GCornerNone);
   char t[BUFFER_LEN];
-  strftime(t, BUFFER_LEN, "%a %d %b", now);
+  strftime(t, BUFFER_LEN, "%H:%M, %a, %d %b", now);
   graphics_context_set_text_color(ctx, GColorWhite);
   draw_text(ctx, t, fonts_get_system_font(FONT_KEY_GOTHIC_28), date_bbox, GTextAlignmentCenter, 6);
 }
 
 static void update_layer(Layer* layer, GContext* ctx) {
   GRect bounds = layer_get_bounds(layer);
+  int date_height = PBL_IF_ROUND_ELSE(0, 28);
+  int inset = PBL_IF_ROUND_ELSE(30, 0);
+  GRect main = GRect(bounds.origin.x, bounds.origin.y, bounds.size.w, bounds.size.h - date_height);
+  main = grect_inset(main, GEdgeInsets(inset));
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_fill_rect(ctx, bounds, 0, GCornerNone);
 
   time_t t = time(NULL);
   if (DEBUG_TIME) {
     static time_t extra = 0;
-    extra += 1;
+    extra += 59;
     t += extra;
   }
 
   struct tm* now = localtime(&t);
-  draw_time(ctx, now, grect_center_point(&main), 100);
-  if (!ROUND) {
-    draw_date(ctx, bounds, 28, now);
-  }
+  draw_time(ctx, main, now);
+  draw_date(ctx, bounds, date_height, now);
 }
 
 static void window_load(Window* window) {
@@ -135,7 +197,6 @@ static void tick_handler(struct tm* now, TimeUnits units_changed) {
 }
 
 static void init(void) {
-  s_font_lg = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_71));
   s_window = window_create();
   window_set_window_handlers(s_window, (WindowHandlers) {
     .load = window_load,

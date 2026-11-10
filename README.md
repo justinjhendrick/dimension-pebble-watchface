@@ -1,5 +1,14 @@
 # Pebble Dimension Watchface
 
+## Screenshots
+
+### Emery
+
+![screenshot](screenshots_emery.gif)
+
+### Gabbro
+
+![screenshot](screenshots_gabbro.gif)
 
 ## License
 
