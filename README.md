@@ -4,11 +4,11 @@
 
 ### Emery
 
-![screenshot](screenshots_emery.gif)
+![screenshot](screenshot_emery.png)
 
 ### Gabbro
 
-![screenshot](screenshots_gabbro.gif)
+![screenshot](screenshot_gabbro.png)
 
 ## License
 
