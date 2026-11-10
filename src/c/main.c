@@ -1,7 +1,7 @@
 #include <pebble.h>
 
 #define DEBUG_BBOX (false)
-#define DEBUG_TIME (true)
+#define DEBUG_TIME (false)
 #define BUFFER_LEN (40)
 
 static Window* s_window;
