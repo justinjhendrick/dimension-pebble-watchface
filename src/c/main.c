@@ -145,7 +145,9 @@ static void draw_time(GContext* ctx, GRect bbox, struct tm* now) {
     if (hour == 0) {
       hour = 12;
     }
-    if (hour / 10 != 0) {
+    if (hour / 10 == 0) {
+      draw_digit(ctx, tl, -1); // still want to draw background
+    } else {
       draw_digit(ctx, tl, hour / 10);
     }
     draw_digit(ctx, tr, hour % 10);
@@ -186,7 +188,11 @@ static void draw_date(GContext* ctx, GRect bounds, int date_height, struct tm* n
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_fill_rect(ctx, date_bbox, 0, GCornerNone);
   char t[BUFFER_LEN];
-  strftime(t, BUFFER_LEN, "%H:%M, %a, %d %b", now);
+  if (clock_is_24h_style()) {
+    strftime(t, BUFFER_LEN, "%H:%M, %a, %d %b", now);
+  } else {
+    strftime(t, BUFFER_LEN, "%l:%M, %a, %d %b", now);
+  }
   graphics_context_set_text_color(ctx, GColorWhite);
   draw_text(ctx, t, fonts_get_system_font(FONT_KEY_GOTHIC_28), date_bbox, GTextAlignmentCenter, 6);
 }
