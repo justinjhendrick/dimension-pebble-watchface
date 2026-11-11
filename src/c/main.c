@@ -2,6 +2,7 @@
 
 #define DEBUG_BBOX (false)
 #define DEBUG_TIME (false)
+#define DEBUG_CHEATSHEET (false)
 #define BUFFER_LEN (40)
 
 static Window* s_window;
@@ -48,17 +49,20 @@ static void draw_digit(GContext* ctx, GRect bbox, int digit) {
   graphics_fill_rect(ctx, bbox, 0, GCornerNone);
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_context_set_stroke_color(ctx, GColorBlack);
-  graphics_context_set_stroke_width(ctx, 7);
 
   GPoint center = grect_center_point(&bbox);
-  int R = min(bbox.size.h, bbox.size.w) / 4;
+  int sz = min(bbox.size.h, bbox.size.w);
+  int R = sz / 4;
   int D = 2 * R;
+  int sw = sz * 7 / 100;
+  int dot_radius = sw - 1;
+  graphics_context_set_stroke_width(ctx, sw);
   switch (digit) {
     case 0: {
       graphics_draw_circle(ctx, center, R);
       break;
     } case 1: {
-      graphics_fill_circle(ctx, center, 7);
+      graphics_fill_circle(ctx, center, dot_radius);
       break;
     } case 2: {
       GPoint left = GPoint(center.x - R, center.y);
@@ -66,10 +70,11 @@ static void draw_digit(GContext* ctx, GRect bbox, int digit) {
       graphics_draw_line(ctx, left, right);
       break;
     } case 3: {
-      GPoint u = GPoint(center.x, center.y - 15);
-      GPoint l = GPoint(center.x - R, center.y + 15);
-      GPoint r = GPoint(center.x + R, center.y + 15);
-      graphics_fill_circle(ctx, u, 7);
+      int g = R * 3 / 5;
+      GPoint u = GPoint(center.x, center.y - g);
+      GPoint l = GPoint(center.x - R, center.y + g);
+      GPoint r = GPoint(center.x + R, center.y + g);
+      graphics_fill_circle(ctx, u, dot_radius);
       graphics_draw_line(ctx, l, r);
       break;
     } case 4: {
@@ -79,7 +84,7 @@ static void draw_digit(GContext* ctx, GRect bbox, int digit) {
     } case 5: {
       GRect four = rect_from_midpoint(center, GSize(D, D));
       graphics_draw_rect(ctx, four);
-      graphics_fill_circle(ctx, center, 7);
+      graphics_fill_circle(ctx, center, dot_radius);
       break;
     } case 6: {
       GRect four = rect_from_midpoint(center, GSize(D, D));
@@ -95,7 +100,7 @@ static void draw_digit(GContext* ctx, GRect bbox, int digit) {
       GPoint end   = GPoint(four.origin.x + four.size.w - 1, four.origin.y               + 1);
       graphics_draw_line(ctx, start, end);
       GPoint dot = GPoint(four.origin.x + four.size.w * 11 / 16, four.origin.y + four.size.h * 11 / 16);
-      graphics_fill_circle(ctx, dot, 7);
+      graphics_fill_circle(ctx, dot, dot_radius);
       break;
     } case 8: {
       GRect tr = rect_from_midpoint(GPoint(center.x + R / 2, center.y - R / 2), GSize(R, R));
@@ -150,6 +155,24 @@ static void draw_time(GContext* ctx, GRect bbox, struct tm* now) {
   draw_digit(ctx, br, minute % 10);
 }
 
+static void draw_cheatsheet(GContext* ctx, GRect main) {
+  char t[BUFFER_LEN];
+  graphics_context_set_text_color(ctx, GColorBlack);
+  GFont f = fonts_get_system_font(FONT_KEY_GOTHIC_24);
+  int R = min(main.size.h / 4, main.size.w / 3);
+  int g = (main.size.w - R * 3) / 4;
+  GRect bbox = GRect(main.origin.x + g, main.origin.y, R, R - 2); draw_digit(ctx, bbox, 0); snprintf(t, BUFFER_LEN, "%d", 0); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 1); snprintf(t, BUFFER_LEN, "%d", 1); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 2); snprintf(t, BUFFER_LEN, "%d", 2); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 3); snprintf(t, BUFFER_LEN, "%d", 3); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  bbox.origin.x += R + g; bbox.origin.y = main.origin.y         ; draw_digit(ctx, bbox, 4); snprintf(t, BUFFER_LEN, "%d", 4); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 5); snprintf(t, BUFFER_LEN, "%d", 5); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 6); snprintf(t, BUFFER_LEN, "%d", 6); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 7); snprintf(t, BUFFER_LEN, "%d", 7); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  bbox.origin.x += R + g; bbox.origin.y = main.origin.y         ; draw_digit(ctx, bbox, 8); snprintf(t, BUFFER_LEN, "%d", 8); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 9); snprintf(t, BUFFER_LEN, "%d", 9); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+}
+
 static void draw_date(GContext* ctx, GRect bounds, int date_height, struct tm* now) {
   if (date_height < 10) {
     return;
@@ -184,9 +207,13 @@ static void update_layer(Layer* layer, GContext* ctx) {
     t += extra;
   }
 
+#if DEBUG_CHEATSHEET
+  draw_cheatsheet(ctx, bounds);
+#else
   struct tm* now = localtime(&t);
   draw_time(ctx, main, now);
   draw_date(ctx, bounds, date_height, now);
+#endif
 }
 
 static void window_load(Window* window) {
@@ -209,6 +236,7 @@ static void tick_handler(struct tm* now, TimeUnits units_changed) {
 }
 
 static void init(void) {
+  char* sys_locale = setlocale(LC_ALL, ""); // changes strftime behavior
   s_window = window_create();
   window_set_window_handlers(s_window, (WindowHandlers) {
     .load = window_load,

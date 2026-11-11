@@ -6,6 +6,8 @@
 
 ![screenshot](screenshot_emery.png)
 
+![screenshot](screenshot_emery_guide.png)
+
 ### Gabbro
 
 ![screenshot](screenshot_gabbro.png)
