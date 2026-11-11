@@ -1,5 +1,5 @@
 {
-  "name": "Dimensions",
+  "name": "Universal Digits",
   "author": "justinjhendrick",
   "version": "1.0.0",
   "keywords": [
@@ -8,7 +8,7 @@
   "private": false,
   "dependencies": {},
   "pebble": {
-    "displayName": "Dimensions",
+    "displayName": "Universal Digits",
     "uuid": "2143f54b-3879-4b1b-8d2f-b47a5ce2e6a6",
     "sdkVersion": "3",
     "enableMultiJS": true,

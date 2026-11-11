@@ -84,23 +84,24 @@ static void draw_digit(GContext* ctx, GRect bbox, int digit) {
     } case 6: {
       GRect four = rect_from_midpoint(center, GSize(D, D));
       graphics_draw_rect(ctx, four);
-      graphics_draw_line(ctx, four.origin, GPoint(four.origin.x + four.size.w, four.origin.y + four.size.h));
+      GPoint start = GPoint(four.origin.x               + 1, four.origin.y + four.size.h - 1);
+      GPoint end   = GPoint(four.origin.x + four.size.w - 1, four.origin.y               + 1);
+      graphics_draw_line(ctx, start, end);
       break;
     } case 7: {
       GRect four = rect_from_midpoint(center, GSize(D, D));
       graphics_draw_rect(ctx, four);
-      graphics_draw_line(ctx, four.origin, GPoint(four.origin.x + four.size.w, four.origin.y + four.size.h));
-      GPoint dot = GPoint(four.origin.x + four.size.w * 5 / 16, four.origin.y + four.size.h * 11 / 16);
+      GPoint start = GPoint(four.origin.x               + 1, four.origin.y + four.size.h - 1);
+      GPoint end   = GPoint(four.origin.x + four.size.w - 1, four.origin.y               + 1);
+      graphics_draw_line(ctx, start, end);
+      GPoint dot = GPoint(four.origin.x + four.size.w * 11 / 16, four.origin.y + four.size.h * 11 / 16);
       graphics_fill_circle(ctx, dot, 7);
       break;
     } case 8: {
-      GRect four = rect_from_midpoint(center, GSize(D, D));
-      graphics_draw_rect(ctx, four);
-      graphics_draw_line(
-        ctx,
-        GPoint(four.origin.x              , four.origin.y + four.size.h / 2),
-        GPoint(four.origin.x + four.size.w, four.origin.y + four.size.h / 2)
-      );
+      GRect tr = rect_from_midpoint(GPoint(center.x + R / 2, center.y - R / 2), GSize(R, R));
+      GRect bl = rect_from_midpoint(GPoint(center.x - R / 2, center.y + R / 2), GSize(R, R));
+      graphics_draw_rect(ctx, tr);
+      graphics_draw_rect(ctx, bl);
       break;
     } case 9: {
       int half_w = R;
@@ -131,8 +132,19 @@ static void draw_time(GContext* ctx, GRect bbox, struct tm* now) {
   debug_bbox(ctx, br);
 
   int hour = now->tm_hour;
-  draw_digit(ctx, tl, hour / 10);
-  draw_digit(ctx, tr, hour % 10);
+  if (clock_is_24h_style()) {
+    draw_digit(ctx, tl, hour / 10);
+    draw_digit(ctx, tr, hour % 10);
+  } else {
+    hour = hour % 12;
+    if (hour == 0) {
+      hour = 12;
+    }
+    if (hour / 10 != 0) {
+      draw_digit(ctx, tl, hour / 10);
+    }
+    draw_digit(ctx, tr, hour % 10);
+  }
   int minute = now->tm_min;
   draw_digit(ctx, bl, minute / 10);
   draw_digit(ctx, br, minute % 10);

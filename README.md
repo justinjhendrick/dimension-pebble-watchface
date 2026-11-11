@@ -1,4 +1,4 @@
-# Pebble Dimension Watchface
+# Universal Digits - Pebble Watchface
 
 ## Screenshots
 
