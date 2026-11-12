@@ -1,6 +1,6 @@
 # Alien Time Keeper - Pebble Watchface
 
-A digital watchface with alien-friendly digits and sometimes a friendly alien face too.
+A watchface with alien-friendly digits and sometimes a friendly alien face too.
 
 I designed new symbols for all the digits 0-9:
 * 0 is nothing
@@ -14,7 +14,8 @@ I designed new symbols for all the digits 0-9:
 * 8 is two squares (4 + 4)
 * 9 is two squares and a dot (4 + 4 + 1)
 
-The larger digits are made from smaller digits combined so earthlings have fewer shapes to remember.
+The larger numbers are composed of smaller numbers, so earthlings have fewer shapes to remember.
+Top row is hours, bottom row is minutes.
 
 For practicality (on square screens) the time and date are written across the bottom in an earth language.
 
