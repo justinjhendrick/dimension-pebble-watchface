@@ -5,27 +5,33 @@ from pathlib import Path
 import sys
 import json
 from subprocess import check_call
+from typing import Any
 
 THIS_DIR = Path(__file__).absolute().parent
 
+def pebble(*args: str, **kwargs: Any) -> None:
+    check_call(["pebble"] + list(args), **kwargs)
+
 def main() -> int:
+    # TODO: animated gif screenshots
     with open(THIS_DIR / "package.json", mode="r") as f:
         package = json.load(f)
     for cflags in ["", f"-DDEBUG_CHEATSHEET"]:
         env = os.environ.copy()
         env["CFLAGS"] = cflags
-        check_call(["pebble", "build"], env=env)
+        pebble("build", env=env)
         for platform in package["pebble"]["targetPlatforms"]:
-            check_call(["pebble", "wipe"])
-            check_call(["pebble", "kill"])
-            check_call(["pebble", "install", "--emulator", platform])
-            time.sleep(2.0)
+            pebble("wipe")
+            pebble("kill")
+            pebble("emu-time-format", "--format", "12h", "--emulator", platform)
+            pebble("install", "--emulator", platform)
+            time.sleep(1.0)
             if cflags == "":
-                check_call(["pebble", "screenshot", f"screenshot_{platform}.png"])
+                pebble("screenshot", f"screenshot_{platform}.png")
             else:
-                check_call(["pebble", "screenshot", f"screenshot_{platform}_guide.png"])
-        check_call(["pebble", "wipe"])
-        check_call(["pebble", "kill"])
+                pebble("screenshot", f"screenshot_{platform}_guide.png")
+        pebble("wipe")
+        pebble("kill")
     return 0
 
 if __name__ == "__main__":

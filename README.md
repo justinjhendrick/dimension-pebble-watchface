@@ -38,7 +38,7 @@ Inspired by SETI communications like the Arecibo message.
 
 [![CC BY-SA 4.0][cc-by-sa-shield]][cc-by-sa]
 
-This work (except fonts) is licensed under a
+This work is licensed under a
 [Creative Commons Attribution-ShareAlike 4.0 International License][cc-by-sa].
 
 [![CC BY-SA 4.0][cc-by-sa-image]][cc-by-sa]

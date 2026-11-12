@@ -151,6 +151,7 @@ static void draw_time(GContext* ctx, GRect bbox, struct tm* now) {
 }
 
 #ifdef DEBUG_CHEATSHEET
+
 static void draw_cheatsheet(GContext* ctx, GRect main) {
   char t[BUFFER_LEN];
   graphics_context_set_text_color(ctx, GColorBlack);
@@ -179,7 +180,8 @@ static void draw_cheatsheet(GContext* ctx, GRect main) {
   graphics_context_set_fill_color(ctx, s_col2);
   bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 9); snprintf(t, BUFFER_LEN, " %d", 9); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
 }
-#endif
+
+#else
 
 static void draw_date(GContext* ctx, GRect bounds, int date_height, struct tm* now) {
   if (date_height < 10) {
@@ -202,6 +204,8 @@ static void draw_date(GContext* ctx, GRect bounds, int date_height, struct tm* n
   graphics_context_set_text_color(ctx, GColorPastelYellow);
   draw_text(ctx, t, fonts_get_system_font(FONT_KEY_GOTHIC_28), date_bbox, GTextAlignmentCenter, 6);
 }
+
+#endif
 
 static void update_layer(Layer* layer, GContext* ctx) {
   GRect bounds = layer_get_bounds(layer);
@@ -248,7 +252,7 @@ static void tick_handler(struct tm* now, TimeUnits units_changed) {
 }
 
 static void init(void) {
-  char* sys_locale = setlocale(LC_ALL, ""); // changes strftime behavior
+  setlocale(LC_ALL, ""); // changes strftime behavior
   s_window = window_create();
   window_set_window_handlers(s_window, (WindowHandlers) {
     .load = window_load,
