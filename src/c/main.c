@@ -2,11 +2,12 @@
 
 #define DEBUG_BBOX (false)
 #define DEBUG_TIME (false)
-#define DEBUG_CHEATSHEET (false)
 #define BUFFER_LEN (40)
 
 static Window* s_window;
 static Layer* s_layer;
+static GColor s_col1 = GColorMediumSpringGreen;
+static GColor s_col2 = GColorVividCerulean;
 
 static void debug_bbox(GContext* ctx, GRect bbox) {
   if (!DEBUG_BBOX) {
@@ -32,6 +33,13 @@ static int min(int a, int b) {
   return b;
 }
 
+static int max(int a, int b) {
+  if (a > b) {
+    return a;
+  }
+  return b;
+}
+
 static void draw_text(
     GContext* ctx,
     const char* buffer,
@@ -45,78 +53,65 @@ static void draw_text(
 }
 
 static void draw_digit(GContext* ctx, GRect bbox, int digit) {
-  graphics_context_set_fill_color(ctx, GColorWhite);
+  graphics_context_set_stroke_width(ctx, 3);
+  graphics_context_set_stroke_color(ctx, GColorPastelYellow);
   graphics_fill_rect(ctx, bbox, 0, GCornerNone);
+  graphics_draw_rect(ctx, bbox);
+
+  int sz = min(bbox.size.h, bbox.size.w);
+  int R = sz / 4;
+  int D = 2 * R;
+  int sw = max(1, sz * 7 / 100);
+  int dot_radius = max(1, sw - 1);
+
+  graphics_context_set_stroke_width(ctx, sw);
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_context_set_stroke_color(ctx, GColorBlack);
 
   GPoint center = grect_center_point(&bbox);
-  int sz = min(bbox.size.h, bbox.size.w);
-  int R = sz / 4;
-  int D = 2 * R;
-  int sw = sz * 7 / 100;
-  int dot_radius = sw - 1;
-  graphics_context_set_stroke_width(ctx, sw);
+  GRect  four      = rect_from_midpoint(center, GSize(D, D));
+  GPoint two_start = GPoint(four.origin.x               + 1, four.origin.y + four.size.h - 1);
+  GPoint two_end   = GPoint(four.origin.x + four.size.w - 1, four.origin.y               + 1);
+  GRect  eight_tr  = rect_from_midpoint(GPoint(center.x + R / 2, center.y - R / 2), GSize(R, R));
+  GRect  eight_bl  = rect_from_midpoint(GPoint(center.x - R / 2, center.y + R / 2), GSize(R, R));
   switch (digit) {
-    case 0: {
-      graphics_draw_circle(ctx, center, R);
-      break;
-    } case 1: {
+    case 1: {
       graphics_fill_circle(ctx, center, dot_radius);
       break;
     } case 2: {
-      GPoint left = GPoint(center.x - R, center.y);
-      GPoint right = GPoint(center.x + R, center.y);
-      graphics_draw_line(ctx, left, right);
+      graphics_draw_line(ctx, two_start, two_end);
       break;
     } case 3: {
-      int g = R * 3 / 5;
-      GPoint u = GPoint(center.x, center.y - g);
-      GPoint l = GPoint(center.x - R, center.y + g);
-      GPoint r = GPoint(center.x + R, center.y + g);
-      graphics_fill_circle(ctx, u, dot_radius);
-      graphics_draw_line(ctx, l, r);
+      graphics_draw_line(ctx, two_start, two_end);
+      GPoint dot = GPoint(four.origin.x + four.size.w * 14 / 16, four.origin.y + four.size.h * 14 / 16);
+      graphics_fill_circle(ctx, dot, dot_radius);
       break;
     } case 4: {
-      GRect four = rect_from_midpoint(center, GSize(D, D));
       graphics_draw_rect(ctx, four);
       break;
     } case 5: {
-      GRect four = rect_from_midpoint(center, GSize(D, D));
       graphics_draw_rect(ctx, four);
       graphics_fill_circle(ctx, center, dot_radius);
       break;
     } case 6: {
-      GRect four = rect_from_midpoint(center, GSize(D, D));
       graphics_draw_rect(ctx, four);
-      GPoint start = GPoint(four.origin.x               + 1, four.origin.y + four.size.h - 1);
-      GPoint end   = GPoint(four.origin.x + four.size.w - 1, four.origin.y               + 1);
-      graphics_draw_line(ctx, start, end);
+      graphics_draw_line(ctx, two_start, two_end);
       break;
     } case 7: {
-      GRect four = rect_from_midpoint(center, GSize(D, D));
       graphics_draw_rect(ctx, four);
-      GPoint start = GPoint(four.origin.x               + 1, four.origin.y + four.size.h - 1);
-      GPoint end   = GPoint(four.origin.x + four.size.w - 1, four.origin.y               + 1);
-      graphics_draw_line(ctx, start, end);
-      GPoint dot = GPoint(four.origin.x + four.size.w * 11 / 16, four.origin.y + four.size.h * 11 / 16);
+      graphics_draw_line(ctx, two_start, two_end);
+      GPoint dot = GPoint(four.origin.x + four.size.w * 23 / 32, four.origin.y + four.size.h * 23 / 32);
       graphics_fill_circle(ctx, dot, dot_radius);
       break;
     } case 8: {
-      GRect tr = rect_from_midpoint(GPoint(center.x + R / 2, center.y - R / 2), GSize(R, R));
-      GRect bl = rect_from_midpoint(GPoint(center.x - R / 2, center.y + R / 2), GSize(R, R));
-      graphics_draw_rect(ctx, tr);
-      graphics_draw_rect(ctx, bl);
+      graphics_draw_rect(ctx, eight_tr);
+      graphics_draw_rect(ctx, eight_bl);
       break;
     } case 9: {
-      int half_w = R;
-      int half_h = half_w * 173 / 200;  // approx sqrt(3) / 2
-      GPoint u = GPoint(center.x, center.y - half_h);
-      GPoint l = GPoint(center.x - half_w, center.y + half_h);
-      GPoint r = GPoint(center.x + half_w, center.y + half_h);
-      graphics_draw_line(ctx, u, l);
-      graphics_draw_line(ctx, l, r);
-      graphics_draw_line(ctx, r, u);
+      graphics_draw_rect(ctx, eight_tr);
+      graphics_draw_rect(ctx, eight_bl);
+      GPoint dot = grect_center_point(&eight_bl);
+      graphics_fill_circle(ctx, dot, max(1, dot_radius - 1));
       break;
     }
   }
@@ -137,43 +132,54 @@ static void draw_time(GContext* ctx, GRect bbox, struct tm* now) {
   debug_bbox(ctx, br);
 
   int hour = now->tm_hour;
-  if (clock_is_24h_style()) {
-    draw_digit(ctx, tl, hour / 10);
-    draw_digit(ctx, tr, hour % 10);
-  } else {
+  int minute = now->tm_min;
+  if (!clock_is_24h_style()) {
     hour = hour % 12;
     if (hour == 0) {
       hour = 12;
     }
-    if (hour / 10 == 0) {
-      draw_digit(ctx, tl, -1); // still want to draw background
-    } else {
-      draw_digit(ctx, tl, hour / 10);
-    }
-    draw_digit(ctx, tr, hour % 10);
   }
-  int minute = now->tm_min;
+
+  graphics_context_set_fill_color(ctx, s_col1);
+  draw_digit(ctx, tl, hour / 10);
+  graphics_context_set_fill_color(ctx, s_col2);
+  draw_digit(ctx, tr, hour % 10);
+  graphics_context_set_fill_color(ctx, s_col2);
   draw_digit(ctx, bl, minute / 10);
+  graphics_context_set_fill_color(ctx, s_col1);
   draw_digit(ctx, br, minute % 10);
 }
 
+#ifdef DEBUG_CHEATSHEET
 static void draw_cheatsheet(GContext* ctx, GRect main) {
   char t[BUFFER_LEN];
   graphics_context_set_text_color(ctx, GColorBlack);
   GFont f = fonts_get_system_font(FONT_KEY_GOTHIC_24);
   int R = min(main.size.h / 4, main.size.w / 3);
   int g = (main.size.w - R * 3) / 4;
-  GRect bbox = GRect(main.origin.x + g, main.origin.y, R, R - 2); draw_digit(ctx, bbox, 0); snprintf(t, BUFFER_LEN, "%d", 0); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
-  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 1); snprintf(t, BUFFER_LEN, "%d", 1); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
-  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 2); snprintf(t, BUFFER_LEN, "%d", 2); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
-  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 3); snprintf(t, BUFFER_LEN, "%d", 3); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
-  bbox.origin.x += R + g; bbox.origin.y = main.origin.y         ; draw_digit(ctx, bbox, 4); snprintf(t, BUFFER_LEN, "%d", 4); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
-  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 5); snprintf(t, BUFFER_LEN, "%d", 5); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
-  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 6); snprintf(t, BUFFER_LEN, "%d", 6); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
-  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 7); snprintf(t, BUFFER_LEN, "%d", 7); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
-  bbox.origin.x += R + g; bbox.origin.y = main.origin.y         ; draw_digit(ctx, bbox, 8); snprintf(t, BUFFER_LEN, "%d", 8); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
-  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 9); snprintf(t, BUFFER_LEN, "%d", 9); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+
+  graphics_context_set_fill_color(ctx, s_col1);
+  GRect bbox = GRect(main.origin.x + g, main.origin.y, R, R - 2); draw_digit(ctx, bbox, 0); snprintf(t, BUFFER_LEN, " %d", 0); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  graphics_context_set_fill_color(ctx, s_col2);
+  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 1); snprintf(t, BUFFER_LEN, " %d", 1); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  graphics_context_set_fill_color(ctx, s_col1);
+  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 2); snprintf(t, BUFFER_LEN, " %d", 2); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  graphics_context_set_fill_color(ctx, s_col2);
+  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 3); snprintf(t, BUFFER_LEN, " %d", 3); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  graphics_context_set_fill_color(ctx, s_col1);
+  bbox.origin.x += R + g; bbox.origin.y = main.origin.y         ; draw_digit(ctx, bbox, 4); snprintf(t, BUFFER_LEN, " %d", 4); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  graphics_context_set_fill_color(ctx, s_col2);
+  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 5); snprintf(t, BUFFER_LEN, " %d", 5); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  graphics_context_set_fill_color(ctx, s_col1);
+  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 6); snprintf(t, BUFFER_LEN, " %d", 6); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  graphics_context_set_fill_color(ctx, s_col2);
+  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 7); snprintf(t, BUFFER_LEN, " %d", 7); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  graphics_context_set_fill_color(ctx, s_col1);
+  bbox.origin.x += R + g; bbox.origin.y = main.origin.y         ; draw_digit(ctx, bbox, 8); snprintf(t, BUFFER_LEN, " %d", 8); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
+  graphics_context_set_fill_color(ctx, s_col2);
+  bbox.origin.y += R                                            ; draw_digit(ctx, bbox, 9); snprintf(t, BUFFER_LEN, " %d", 9); draw_text(ctx, t, f, bbox, GTextAlignmentLeft, 0);
 }
+#endif
 
 static void draw_date(GContext* ctx, GRect bounds, int date_height, struct tm* now) {
   if (date_height < 10) {
@@ -193,29 +199,29 @@ static void draw_date(GContext* ctx, GRect bounds, int date_height, struct tm* n
   } else {
     strftime(t, BUFFER_LEN, "%l:%M, %a, %d %b", now);
   }
-  graphics_context_set_text_color(ctx, GColorWhite);
+  graphics_context_set_text_color(ctx, GColorPastelYellow);
   draw_text(ctx, t, fonts_get_system_font(FONT_KEY_GOTHIC_28), date_bbox, GTextAlignmentCenter, 6);
 }
 
 static void update_layer(Layer* layer, GContext* ctx) {
   GRect bounds = layer_get_bounds(layer);
-  int date_height = PBL_IF_ROUND_ELSE(0, 28);
-  int inset = PBL_IF_ROUND_ELSE(30, 0);
-  GRect main = GRect(bounds.origin.x, bounds.origin.y, bounds.size.w, bounds.size.h - date_height);
-  main = grect_inset(main, GEdgeInsets(inset));
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_fill_rect(ctx, bounds, 0, GCornerNone);
 
+  int inset = PBL_IF_ROUND_ELSE(22, 0);
+  GRect main = grect_inset(bounds, GEdgeInsets(inset));
+
+#ifdef DEBUG_CHEATSHEET
+  draw_cheatsheet(ctx, main);
+#else
+  int date_height = PBL_IF_ROUND_ELSE(0, 28);
+  main = GRect(main.origin.x, main.origin.y, main.size.w, main.size.h - date_height);
   time_t t = time(NULL);
   if (DEBUG_TIME) {
     static time_t extra = 0;
     extra += 59;
     t += extra;
   }
-
-#if DEBUG_CHEATSHEET
-  draw_cheatsheet(ctx, bounds);
-#else
   struct tm* now = localtime(&t);
   draw_time(ctx, main, now);
   draw_date(ctx, bounds, date_height, now);

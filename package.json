@@ -1,14 +1,20 @@
 {
-  "name": "Universal Digits",
+  "name": "Alien Time Keeper",
   "author": "justinjhendrick",
   "version": "1.0.0",
   "keywords": [
+    "alien",
+    "universe",
+    "extraterrestrial",
+    "interstellar",
+    "arecibo",
+    "SETI",
     "pebble-watchface"
   ],
   "private": false,
   "dependencies": {},
   "pebble": {
-    "displayName": "Universal Digits",
+    "displayName": "Alien Time Keeper",
     "uuid": "2143f54b-3879-4b1b-8d2f-b47a5ce2e6a6",
     "sdkVersion": "3",
     "enableMultiJS": true,
