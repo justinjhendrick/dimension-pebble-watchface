@@ -1,8 +1,6 @@
 # Alien Time Keeper - Pebble Watchface
 
-A watchface with alien-friendly digits and sometimes a friendly alien face too.
-
-I designed new symbols for all the digits 0-9:
+The Committee for Earthling Communication has designed these symbols
 * 0 is nothing
 * 1 is a dot
 * 2 is a slash
@@ -14,12 +12,11 @@ I designed new symbols for all the digits 0-9:
 * 8 is two squares (4 + 4)
 * 9 is two squares and a dot (4 + 4 + 1)
 
-The larger numbers are composed of smaller numbers, so earthlings have fewer shapes to remember.
-Top row is hours, bottom row is minutes.
+The larger numbers are composed of smaller numbers, so Earthlings have fewer shapes to remember.
 
-For practicality (on square screens) the time and date are written across the bottom in an earth language.
+In case the Earthling's brain capacity is less than our models predict, time and date in an Earth language are included.
 
-Inspired by SETI communications like the Arecibo message.
+We got your little Arecibo message, by the way. So cute!
 
 ## Screenshots
 
