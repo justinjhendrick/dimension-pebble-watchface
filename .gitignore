@@ -1,3 +1,4 @@
 *.swp
 build/
 *.lock*
+screenshot_animation_frames/

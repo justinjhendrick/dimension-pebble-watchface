@@ -25,15 +25,19 @@ Inspired by SETI communications like the Arecibo message.
 
 ### Emery
 
-![screenshot](screenshot_emery.png)
+![screenshots](animated_emery.gif)
 
-![screenshot](screenshot_emery_guide.png)
+![screenshot](screenshot_emery_0752.png)
+
+![guide](screenshot_emery_guide.png)
 
 ### Gabbro
 
-![screenshot](screenshot_gabbro.png)
+![screenshots](animated_gabbro.gif)
 
-![screenshot](screenshot_gabbro_guide.png)
+![screenshot](screenshot_gabbro_0752.png)
+
+![guide](screenshot_gabbro_guide.png)
 
 ## License
 

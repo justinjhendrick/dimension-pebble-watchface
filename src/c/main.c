@@ -1,7 +1,5 @@
 #include <pebble.h>
 
-#define DEBUG_BBOX (false)
-#define DEBUG_TIME (false)
 #define BUFFER_LEN (40)
 
 static Window* s_window;
@@ -10,12 +8,11 @@ static GColor s_col1 = GColorMediumSpringGreen;
 static GColor s_col2 = GColorVividCerulean;
 
 static void debug_bbox(GContext* ctx, GRect bbox) {
-  if (!DEBUG_BBOX) {
-    return;
-  }
+#ifdef DEBUG_BBOX
   graphics_context_set_stroke_width(ctx, 1);
   graphics_context_set_stroke_color(ctx, GColorRed);
   graphics_draw_rect(ctx, bbox);
+#endif
 }
 
 static GRect rect_from_midpoint(GPoint midpoint, GSize size) {
@@ -221,12 +218,21 @@ static void update_layer(Layer* layer, GContext* ctx) {
   int date_height = PBL_IF_ROUND_ELSE(0, 28);
   main = GRect(main.origin.x, main.origin.y, main.size.w, main.size.h - date_height);
   time_t t = time(NULL);
-  if (DEBUG_TIME) {
-    static time_t extra = 0;
-    extra += 59;
-    t += extra;
-  }
+
+#ifdef DEBUG_TIME
+  static int extra = 0;
+  extra += 59;
+  t += extra;
+#endif
+
   struct tm* now = localtime(&t);
+#ifdef HOUR_OVERRIDE
+  now->tm_hour = HOUR_OVERRIDE;
+#endif
+#ifdef MINUTE_OVERRIDE
+  now->tm_min = MINUTE_OVERRIDE;
+#endif
+
   draw_time(ctx, main, now);
   draw_date(ctx, bounds, date_height, now);
 #endif
@@ -259,7 +265,11 @@ static void init(void) {
     .unload = window_unload,
   });
   window_stack_push(s_window, true);
-  tick_timer_service_subscribe(DEBUG_TIME ? SECOND_UNIT : MINUTE_UNIT, tick_handler);
+#ifdef DEBUG_TIME
+  tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
+#else
+  tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+#endif
 }
 
 static void deinit(void) {
